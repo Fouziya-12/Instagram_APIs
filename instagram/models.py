@@ -20,7 +20,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser',True)
         return self.create_user(email,password,**extra_fields)
     
-    # This is the custom user model
+# This is the custom user model
 class CustomUser(AbstractBaseUser,PermissionsMixin):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=100)
@@ -37,4 +37,13 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     def __str__(self):
         return self.email
     
+# for  Post 
+class Post(models.Model):
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    post_url = models.URLField()
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.content
+    

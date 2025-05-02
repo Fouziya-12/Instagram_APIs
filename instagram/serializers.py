@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser,Post
 from django.contrib.auth import authenticate
 
 
@@ -30,3 +30,9 @@ class LoginSerializer(serializers.Serializer):
 
         data['user'] = user
         return data
+    
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['id','user','post_url','content','created_at']
+        read_only_fields = ['user','created_at']
