@@ -54,3 +54,4 @@ class Like(models.Model):
     
     class Meta:
         unique_together = ('user','post')  # To prevent the same user from liking the same post twice
+

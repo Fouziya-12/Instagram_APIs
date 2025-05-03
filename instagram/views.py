@@ -108,4 +108,18 @@ class LikeView(APIView):
         Like.objects.create(user=request.user,post=post)
         return Response({'message':'Post liked successfully'},status=status.HTTP_201_CREATED)
        
+class UnLikeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self,request,post_id):
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({'error':'Post not found'},status=status.HTTP_404_NOT_FOUND)    
         
+        try:
+            like = Like.objects.get(user=request.user,post=post)
+            like.delete()
+            return Response({'message':'Post unliked successfully'},status=status.HTTP_200_OK)
+        except Like.DoesNotExist:
+            return Response({'error':'You have not liked this post yet'},status=status.HTTP_400_BAD_REQUEST)
