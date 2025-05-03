@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer,LoginSerializer,PostSerializer
+from .serializers import RegisterSerializer,LoginSerializer,PostSerializer,UserGetPostSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser,Post
 from rest_framework.permissions import IsAuthenticated
@@ -62,3 +62,11 @@ class CreatePostView(APIView):
             serializer.save(user=request.user)  #set logged-in user
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+class UserGetPostView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self,request):
+        user_posts = Post.objects.filter(user=request.user)
+        serializer = UserGetPostSerializer(user_posts,many=True)
+        return Response(serializer.data)
