@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser,Post
+from .models import CustomUser,Post,Like
 from django.contrib.auth import authenticate
 
 
@@ -45,4 +45,16 @@ class UserGetPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['username','email','user','post_url','content','created_at']
 
-        
+class AllUserGetPostSerializer(serializers.ModelSerializer):
+   username = serializers.CharField(source='user.username',read_only=True)
+   email = serializers.EmailField(source='user.email',read_only=True)
+    
+   class Meta:
+        model = Post
+        fields = ['username','email','user','post_url','content','created_at']
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = ['user', 'post', 'created_at']
+        read_only_fields = ['user', 'created_at']

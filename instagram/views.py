@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer,LoginSerializer,PostSerializer,UserGetPostSerializer
+from .serializers import RegisterSerializer,LoginSerializer,PostSerializer,UserGetPostSerializer,AllUserGetPostSerializer,LikeSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import CustomUser,Post
+from .models import CustomUser,Post,Like
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -70,3 +70,42 @@ class UserGetPostView(APIView):
         user_posts = Post.objects.filter(user=request.user)
         serializer = UserGetPostSerializer(user_posts,many=True)
         return Response(serializer.data)
+    
+class AllUserGetView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        posts = Post.objects.all()
+        serializer = AllUserGetPostSerializer(posts,many=True)
+        return Response(serializer.data)
+    
+class DeleteUserPostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self,request,post_id):
+        try:
+            post = Post.objects.get(id=post_id,user=request.user)
+        except Post.DoesNotExist:
+            return Response({'error':'Post not found'},status=status.HTTP_404_NOT_FOUND)
+        
+        post.delete()
+        return Response({'message':'Post deleted successfully'},status=status.HTTP_204_NO_CONTENT)
+
+class LikeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,post_id):
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({'error':'Post not found'},status=status.HTTP_404_NOT_FOUND)
+     
+        # Check if the user has already liked the post
+        if Like.objects.filter(user=request.user,post=post).exists():
+            return Response({'error':'You have already liked this post'},status=status.HTTP_400_BAD_REQUEST)  
+        
+        # create the like
+        Like.objects.create(user=request.user,post=post)
+        return Response({'message':'Post liked successfully'},status=status.HTTP_201_CREATED)
+       
+        
