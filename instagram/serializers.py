@@ -70,14 +70,12 @@ class EditProfileSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['username','email','mobile_number','profile_pic','password']
         extra_kwargs ={
-            'password':{'write_only':True,'required':False},
-            'email':{'read_only':True},
+            'password':{'read_only':True},
+            'email':{'required':True},
         }
     def update(self, instance, validated_data):
-        password = validated_data.pop('password', None)
+        # Update all fields except password (read_only)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        if password:
-            instance.set_password(password)
         instance.save()
         return instance
