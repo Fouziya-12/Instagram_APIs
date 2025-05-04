@@ -142,6 +142,23 @@ class FollowView(APIView):
         Follow.objects.create(user=request.user,followed_user=followed_user)
         return Response({'message':'successfully followed the user'},status=status.HTTP_201_CREATED)
 
+class UnFollowView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def delete(self,request,user_id):
+        if request.user.id == user_id:
+            return Response({'error':'You cannot follow yourself'},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            followed_user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error':'User not found'},status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            follow = Follow.objects.get(user=request.user,followed_user=followed_user)
+            follow.delete()
+            return Response({'message':'Sucessfully unfollowed the user'},status=status.HTTP_200_OK)
+        except Follow.DoesNotExist:
+            return Response({'error':'You are not following the user'},status=status.HTTP_400_BAD_REQUEST)
+   
 
 
