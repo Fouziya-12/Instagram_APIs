@@ -170,3 +170,14 @@ class EditProfileView(APIView):
             serializer.save()
             return Response({'message':'Profile updated successfully'},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+class DeleteProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self,request):
+        user = request.user
+        username = user.username 
+        user.delete()
+        return Response({'message':f'User {username} profile deleted successfully'},status=status.HTTP_204_NO_CONTENT)
+       
+
