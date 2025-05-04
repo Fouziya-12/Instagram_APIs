@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer,LoginSerializer,PostSerializer,UserGetPostSerializer,AllUserGetPostSerializer,LikeSerializer,FollowSerializer
+from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser,Post,Like,Follow
 from rest_framework.permissions import IsAuthenticated
@@ -160,5 +160,13 @@ class UnFollowView(APIView):
         except Follow.DoesNotExist:
             return Response({'error':'You are not following the user'},status=status.HTTP_400_BAD_REQUEST)
    
+class EditProfileView(APIView):
+    permission_classes = [IsAuthenticated]
 
-
+    def put(self,request):
+        user = request.user
+        serializer = EditProfileSerializer(user,data=request.data,partial=True) # partial=True allows updating some fields
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message':'Profile updated successfully'},status=status.HTTP_200_OK)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)

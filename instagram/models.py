@@ -59,3 +59,4 @@ class Follow(models.Model):
     user = models.ForeignKey(CustomUser,on_delete=models.CASCADE,related_name='follower')
     followed_user = models.ForeignKey(CustomUser,on_delete=models.CASCADE,related_name='following')
     followed_at = models.DateTimeField(auto_now_add=True)
+
