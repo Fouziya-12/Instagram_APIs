@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer,LoginSerializer,PostSerializer,UserGetPostSerializer,AllUserGetPostSerializer,LikeSerializer
+from .serializers import RegisterSerializer,LoginSerializer,PostSerializer,UserGetPostSerializer,AllUserGetPostSerializer,LikeSerializer,FollowSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import CustomUser,Post,Like
+from .models import CustomUser,Post,Like,Follow
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -123,3 +123,25 @@ class UnLikeView(APIView):
             return Response({'message':'Post unliked successfully'},status=status.HTTP_200_OK)
         except Like.DoesNotExist:
             return Response({'error':'You have not liked this post yet'},status=status.HTTP_400_BAD_REQUEST)
+
+class FollowView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request,user_id):
+        if request.user.id == user_id:
+            return Response({'error':'You cannot follow yourself'},status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            followed_user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error':'User not found'},status=status.HTTP_404_NOT_FOUND)
+        
+        if Follow.objects.filter(user=request.user,followed_user=followed_user).exists():
+            return Response({'error':'You are already following this user'},status=status.HTTP_400_BAD_REQUEST)
+        
+        Follow.objects.create(user=request.user,followed_user=followed_user)
+        return Response({'message':'successfully followed the user'},status=status.HTTP_201_CREATED)
+
+
+
+

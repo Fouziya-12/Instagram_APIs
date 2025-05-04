@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser,Post,Like
+from .models import CustomUser,Post,Like,Follow
 from django.contrib.auth import authenticate
 
 
@@ -58,3 +58,9 @@ class LikeSerializer(serializers.ModelSerializer):
         model = Like
         fields = ['user', 'post', 'created_at']
         read_only_fields = ['user', 'created_at']
+
+class FollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ['user','followed_user','followed_at']
+        read_only_fields = ['user','followed_at']
