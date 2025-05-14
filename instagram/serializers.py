@@ -45,13 +45,38 @@ class UserGetPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['username','email','user','post_url','content','created_at']
 
-class AllUserGetPostSerializer(serializers.ModelSerializer):
-   username = serializers.CharField(source='user.username',read_only=True)
-   email = serializers.EmailField(source='user.email',read_only=True)
-    
-   class Meta:
-        model = Post
-        fields = ['username','email','user','post_url','content','created_at']
+
+
+class GetAllPostSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    post_url = serializers.CharField()
+    content = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    is_liked = serializers.SerializerMethodField()
+    is_followed = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+
+    def get_is_liked(self, post):
+        request = self.context.get('request')
+        return Like.objects.filter(user=request.user, post=post).exists()
+
+    def get_is_followed(self, post):
+        request = self.context.get('request')
+        return Follow.objects.filter(user=request.user, followed_user=post.user).exists()
+
+    def get_user(self, post):
+        user = post.user
+        return {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'phone_number': user.mobile_number,
+            'is_active': user.is_active,
+            'is_staff': user.is_staff,
+            'is_superuser': user.is_superuser,
+        }
+
+
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:

@@ -7,6 +7,7 @@ from .models import CustomUser,Post,Like,Follow
 from rest_framework.permissions import IsAuthenticated
 
 
+
 class RegisterView(APIView):
     def post(self,request):
         serializer = RegisterSerializer(data=request.data)
@@ -70,15 +71,23 @@ class UserGetPostView(APIView):
         user_posts = Post.objects.filter(user=request.user)
         serializer = UserGetPostSerializer(user_posts,many=True)
         return Response(serializer.data)
-    
-class AllUserGetView(APIView):
+
+
+
+class GetAllPostsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self,request):
-        posts = Post.objects.all()
-        serializer = AllUserGetPostSerializer(posts,many=True)
-        return Response(serializer.data)
-    
+    def get(self, request):
+        all_posts = Post.objects.select_related('user').all()
+        serializer = GetAllPostSerializer(all_posts, many=True, context={'request': request})
+        return Response({
+            'post_total_count': all_posts.count(),
+            'posts': serializer.data
+        })
+
+
+
+
 class DeleteUserPostView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -180,4 +189,3 @@ class DeleteProfileView(APIView):
         user.delete()
         return Response({'message':f'User {username} profile deleted successfully'},status=status.HTTP_204_NO_CONTENT)
        
-
