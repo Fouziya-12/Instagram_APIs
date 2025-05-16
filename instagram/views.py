@@ -3,8 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import CustomUser,Post,Like,Follow
+from .models import *
 from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from datetime import timedelta
 
 
 
@@ -53,7 +55,8 @@ class LoginView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-  
+
+
 class CreatePostView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -63,7 +66,8 @@ class CreatePostView(APIView):
             serializer.save(user=request.user)  #set logged-in user
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class UserGetPostView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -71,7 +75,6 @@ class UserGetPostView(APIView):
         user_posts = Post.objects.filter(user=request.user)
         serializer = UserGetPostSerializer(user_posts,many=True)
         return Response(serializer.data)
-
 
 
 class GetAllPostsView(APIView):
@@ -86,8 +89,6 @@ class GetAllPostsView(APIView):
         })
 
 
-
-
 class DeleteUserPostView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -99,6 +100,7 @@ class DeleteUserPostView(APIView):
         
         post.delete()
         return Response({'message':'Post deleted successfully'},status=status.HTTP_204_NO_CONTENT)
+
 
 class LikeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -116,7 +118,8 @@ class LikeView(APIView):
         # create the like
         Like.objects.create(user=request.user,post=post)
         return Response({'message':'Post liked successfully'},status=status.HTTP_201_CREATED)
-       
+
+
 class UnLikeView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -132,6 +135,7 @@ class UnLikeView(APIView):
             return Response({'message':'Post unliked successfully'},status=status.HTTP_200_OK)
         except Like.DoesNotExist:
             return Response({'error':'You have not liked this post yet'},status=status.HTTP_400_BAD_REQUEST)
+
 
 class FollowView(APIView):
     permission_classes = [IsAuthenticated]
@@ -151,6 +155,7 @@ class FollowView(APIView):
         Follow.objects.create(user=request.user,followed_user=followed_user)
         return Response({'message':'successfully followed the user'},status=status.HTTP_201_CREATED)
 
+
 class UnFollowView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -169,6 +174,7 @@ class UnFollowView(APIView):
         except Follow.DoesNotExist:
             return Response({'error':'You are not following the user'},status=status.HTTP_400_BAD_REQUEST)
    
+
 class EditProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -180,6 +186,7 @@ class EditProfileView(APIView):
             return Response({'message':'Profile updated successfully'},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
+
 class DeleteProfileView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -188,4 +195,33 @@ class DeleteProfileView(APIView):
         username = user.username 
         user.delete()
         return Response({'message':f'User {username} profile deleted successfully'},status=status.HTTP_204_NO_CONTENT)
-       
+
+
+class CreateStoryView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self,request):
+        serializer = CreateStorySerializer(data=request.data,context={'request':request})
+        if serializer.is_valid():
+           serializer.save(user=request.user)
+           return Response({'message':'Story created successfully','story':serializer.data},status=status.HTTP_201_CREATED) 
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetStoriesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        twenty_four_houes_ago = timezone.now() - timedelta(hours=24)
+        stories = Story.objects.filter(user=request.user,created_at__gte=twenty_four_houes_ago).order_by('-created_at')
+        serializer = CreateStorySerializer(stories,many=True,context={'request':request})
+        return Response({'stories':serializer.data})
+    
+    
+
+
+
+
+
+
+    

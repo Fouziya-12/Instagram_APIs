@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser,Post,Like,Follow
+from .models import *
 from django.contrib.auth import authenticate
 
 
@@ -104,3 +104,25 @@ class EditProfileSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+    
+class CreateStorySerializer(serializers.ModelSerializer):
+    story_type = serializers.ChoiceField(choices=[('photo', 'photo'), ('video', 'video')])
+    duration = serializers.IntegerField(default=30, read_only=True)
+    story_url = serializers.SerializerMethodField()  # ✅ FIXED: Use SerializerMethodField here
+    uploaded_file = serializers.FileField(write_only=True, required=True)  # Accept file in POST
+
+    class Meta:
+        model = Story
+        fields = ['id', 'user', 'content', 'story_type', 'uploaded_file', 'story_url', 'duration', 'created_at']
+        read_only_fields = ['id', 'user', 'duration', 'created_at']
+
+    def get_story_url(self, obj):
+        request = self.context.get('request')
+        if obj.story_url and hasattr(obj.story_url, 'url'):
+            return request.build_absolute_uri(obj.story_url.url)
+        return None
+
+    def create(self, validated_data):
+        file = validated_data.pop('uploaded_file')
+        story = Story.objects.create(story_url=file, **validated_data)
+        return story

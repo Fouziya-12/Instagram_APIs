@@ -60,3 +60,16 @@ class Follow(models.Model):
     followed_user = models.ForeignKey(CustomUser,on_delete=models.CASCADE,related_name='following')
     followed_at = models.DateTimeField(auto_now_add=True)
 
+class Story(models.Model):
+    STORY_TYPE_CHOICES = [('photo','photo'),('video','video')]
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    content = models.TextField()
+    story_type = models.CharField(max_length=10,choices=STORY_TYPE_CHOICES)
+    duration = models.IntegerField(default=30)
+    story_url = models.FileField(upload_to='stories/',null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Story by{self.user.username} at {self.created_at}"
+    
+    

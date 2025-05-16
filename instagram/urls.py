@@ -14,5 +14,7 @@ urlpatterns = [
     path('unfollow-user/<int:user_id>/',UnFollowView.as_view(),name='unfollow-user'),
     path('edit-profile/',EditProfileView.as_view(),name='edit-profile'),
     path('delete-profile/',DeleteProfileView.as_view(),name='delete-profile'),
+    path('create-story/',CreateStoryView.as_view(),name='create-story'),
+    path('get-stories/',GetStoriesView.as_view(),name='get-stories'),
 
 ]
