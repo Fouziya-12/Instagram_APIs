@@ -217,9 +217,27 @@ class GetStoriesView(APIView):
         serializer = CreateStorySerializer(stories,many=True,context={'request':request})
         return Response({'stories':serializer.data})
     
-    
+class GetUserStoryView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self,request,user_id):
+        twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
+        stories = Story.objects.filter(user_id=user_id,created_at__gte=twenty_four_hours_ago).order_by('-created_at')
+        if not stories.exists():
+            return Response({"error": "Story not found or expired."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreateStorySerializer(stories,many=True,context={'request':request})
+        return Response({'stories':serializer.data},status=status.HTTP_200_OK)
 
+class GetStorybySid(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,story_id):
+        twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
+        story = Story.objects.filter(id=story_id,created_at__gte=twenty_four_hours_ago).order_by('-created_at')
+        if not story.exists():
+            return Response({"error": "Story not found or expired."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CreateStorySerializer(story,many=True,context={'request':request})
+        return Response({'story':serializer.data},status=status.HTTP_200_OK) 
 
 
 
