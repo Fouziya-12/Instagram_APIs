@@ -7,6 +7,7 @@ from .models import *
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from datetime import timedelta
+from django.shortcuts import get_object_or_404
 
 
 
@@ -282,7 +283,27 @@ class StoryUnLikeView(APIView):
         except StoryLike.DoesNotExist:
             return Response({'error':'You have not liked this story yet'},status=status.HTTP_400_BAD_REQUEST)
 
+class DeleteStory(APIView):
+    permission_classes = [IsAuthenticated]
 
+    # def delete(self, request, story_id):
+    #     try:
+    #         story = Story.objects.get(id=story_id)
+    #     except Story.DoesNotExist:
+    #         return Response({'error': 'Story not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # this is the shortcut of the above code
+    def delete(self, request, story_id):
+        story = get_object_or_404(Story, id=story_id)  # Get story regardless of owner
+
+        if story.user != request.user:
+            return Response(
+                {'error': 'You are not allowed to delete this story'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        story.delete()
+        return Response({'message': 'Story deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
 
