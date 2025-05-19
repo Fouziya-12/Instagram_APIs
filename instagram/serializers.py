@@ -126,3 +126,9 @@ class CreateStorySerializer(serializers.ModelSerializer):
         file = validated_data.pop('uploaded_file')
         story = Story.objects.create(story_url=file, **validated_data)
         return story
+
+class StoryLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoryLike
+        fields = ['user','story','created_at']
+        read_only_fields = ['user','created_at']

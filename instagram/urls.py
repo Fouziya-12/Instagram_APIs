@@ -18,5 +18,9 @@ urlpatterns = [
     path('get-stories/',GetStoriesView.as_view(),name='get-stories'),
     path('story/<int:user_id>/',GetUserStoryView.as_view(),name='get-user-story'),
     path('story-id/<int:story_id>/', GetStorybySid.as_view(), name='get-story-by-sid'),
+    path('story-like/<int:story_id>/', StoryLikeView.as_view(), name='story-like'),
+    path('story-unlike/<int:story_id>/',StoryUnLikeView.as_view(),name='story-unlike'),
+   
 
 ]
+ 

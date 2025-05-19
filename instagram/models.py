@@ -72,4 +72,10 @@ class Story(models.Model):
     def __str__(self):
         return f"Story by{self.user.username} at {self.created_at}"
     
-    
+class StoryLike(models.Model):
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    story = models.ForeignKey(Story,on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user','story') 

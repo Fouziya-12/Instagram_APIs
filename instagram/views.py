@@ -239,7 +239,50 @@ class GetStorybySid(APIView):
         serializer = CreateStorySerializer(story,many=True,context={'request':request})
         return Response({'story':serializer.data},status=status.HTTP_200_OK) 
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Story, StoryLike
+
+class StoryLikeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, story_id):
+        try:
+            story = Story.objects.get(id=story_id)
+        except Story.DoesNotExist:
+            return Response({'error': 'Story not found or expired'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Prevent user from liking their own story
+        if story.user == request.user:
+            return Response({'error': 'You cannot like your own story'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the user already liked the story
+        if StoryLike.objects.filter(user=request.user, story=story).exists():
+            return Response({'error': 'You have already liked this story'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Like the story
+        StoryLike.objects.create(user=request.user, story=story)
+        return Response({'message': 'Story liked successfully'}, status=status.HTTP_201_CREATED)
+
+class StoryUnLikeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,story_id):
+        try:
+            story = Story.objects.get(id=story_id)
+        except Story.DoesNotExist:
+            return Response({'error':'Story not found or expired'},status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            like = StoryLike.objects.get(user=request.user,story=story)
+            like.delete()
+            return Response({'message':'Story unliked successfully'},status=status.HTTP_200_OK)
+        except StoryLike.DoesNotExist:
+            return Response({'error':'You have not liked this story yet'},status=status.HTTP_400_BAD_REQUEST)
 
 
 
-    
+
+
