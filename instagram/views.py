@@ -213,38 +213,59 @@ class GetStoriesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
-        twenty_four_houes_ago = timezone.now() - timedelta(hours=24)
-        stories = Story.objects.filter(user=request.user,created_at__gte=twenty_four_houes_ago).order_by('-created_at')
+        twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
+        stories = Story.objects.filter(user=request.user,created_at__gte=twenty_four_hours_ago).order_by('-created_at')
+
+        # if not stories.exists():
+        #     return Response({"error":"Story not found or expired"},status=status.HTTP_404_NOT_FOUND)
+        
+        # for story in stories:
+        #     if story.user  != request.user:
+        #         StoryView.objects.get_or_create(user=request.user,story=story)
+
         serializer = CreateStorySerializer(stories,many=True,context={'request':request})
-        return Response({'stories':serializer.data})
+        return Response({'stories':serializer.data},status=status.HTTP_200_OK)
     
+   
 class GetUserStoryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request,user_id):
         twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
         stories = Story.objects.filter(user_id=user_id,created_at__gte=twenty_four_hours_ago).order_by('-created_at')
+
         if not stories.exists():
             return Response({"error": "Story not found or expired."}, status=status.HTTP_404_NOT_FOUND)
+        
+        for story in stories:
+            if story.user != request.user:
+                StoryView.objects.get_or_create(user=request.user, story=story)
+
         serializer = CreateStorySerializer(stories,many=True,context={'request':request})
         return Response({'stories':serializer.data},status=status.HTTP_200_OK)
+
 
 class GetStorybySid(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request,story_id):
         twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
-        story = Story.objects.filter(id=story_id,created_at__gte=twenty_four_hours_ago).order_by('-created_at')
-        if not story.exists():
-            return Response({"error": "Story not found or expired."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = CreateStorySerializer(story,many=True,context={'request':request})
-        return Response({'story':serializer.data},status=status.HTTP_200_OK) 
+        try:
+            story = Story.objects.get(id=story_id,created_at__gte=twenty_four_hours_ago)
+        except Story.DoesNotExist:
+            return Response({"error":"Story not found or expired."},status=status.HTTP_404_NOT_FOUND)
 
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Story, StoryLike
+        # if not story.exists():
+        #     return Response({"error": "Story not found or expired."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # story = stories.first()
+
+        if story.user != request.user:
+            StoryView.objects.get_or_create(user=request.user,story=story)
+
+        serializer = CreateStorySerializer(story,context={'request':request})
+        return Response({'story':serializer.data},status=status.HTTP_200_OK)
+
 
 class StoryLikeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -283,9 +304,9 @@ class StoryUnLikeView(APIView):
         except StoryLike.DoesNotExist:
             return Response({'error':'You have not liked this story yet'},status=status.HTTP_400_BAD_REQUEST)
 
+
 class DeleteStory(APIView):
     permission_classes = [IsAuthenticated]
-
     # def delete(self, request, story_id):
     #     try:
     #         story = Story.objects.get(id=story_id)

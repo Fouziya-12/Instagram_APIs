@@ -79,3 +79,11 @@ class StoryLike(models.Model):
 
     class Meta:
         unique_together = ('user','story') 
+
+class StoryView(models.Model):
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    story = models.ForeignKey(Story,on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user','story')

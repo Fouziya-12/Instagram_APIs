@@ -108,24 +108,59 @@ class EditProfileSerializer(serializers.ModelSerializer):
 class CreateStorySerializer(serializers.ModelSerializer):
     story_type = serializers.ChoiceField(choices=[('photo', 'photo'), ('video', 'video')])
     duration = serializers.IntegerField(default=30, read_only=True)
-    story_url = serializers.SerializerMethodField()  # ✅ FIXED: Use SerializerMethodField here
-    uploaded_file = serializers.FileField(write_only=True, required=True)  # Accept file in POST
+    story_url = serializers.SerializerMethodField()  
+    uploaded_file = serializers.FileField(write_only=True, required=True) 
+    view_count= serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_viewed = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
-        fields = ['id', 'user', 'content', 'story_type', 'uploaded_file', 'story_url', 'duration', 'created_at']
-        read_only_fields = ['id', 'user', 'duration', 'created_at']
+        fields = ['id', 'user', 'content', 'story_type', 'uploaded_file', 'story_url', 'duration', 'created_at','view_count','is_liked','is_viewed']
+        read_only_fields = ['id', 'user', 'duration', 'created_at','view_count','is_liked','is_viewed']
 
     def get_story_url(self, obj):
         request = self.context.get('request')
         if obj.story_url and hasattr(obj.story_url, 'url'):
             return request.build_absolute_uri(obj.story_url.url)
         return None
+    
+    def get_view_count(self,obj):
+        request = self.context.get('request')
+        if request.user == obj.user:
+            return obj.storyview_set.count()
+        return None
+    
+    def get_is_liked(self,obj):
+        request = self.context.get('request')
+        if request.user != obj.user:
+            return obj.storylike_set.filter(user=request.user).exists()
+        return None #Hide from story owner
+    
+    def get_is_viewed(self,obj):
+        request = self.context.get('request')
+        if request.user != obj.user and not request.user.is_staff:
+            return obj.storyview_set.filter(user=request.user).exists()
+        return None
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
 
+        if request.user == instance.user or request.user.is_staff:
+            # Admin/Owner: only keep view_count
+            representation.pop('is_liked', None)
+            representation.pop('is_viewed', None)
+        else:
+            # Viewer: only keep is_liked, is_viewed
+            representation.pop('view_count', None)
+        return representation
+    
     def create(self, validated_data):
         file = validated_data.pop('uploaded_file')
-        story = Story.objects.create(story_url=file, **validated_data)
-        return story
+        return Story.objects.create(story_url=file, **validated_data)
+      
+    
 
 class StoryLikeSerializer(serializers.ModelSerializer):
     class Meta:
