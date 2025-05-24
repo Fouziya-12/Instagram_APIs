@@ -327,4 +327,42 @@ class DeleteStory(APIView):
         return Response({'message': 'Story deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
+class CommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request,post_id):
+        post = get_object_or_404(Post,id=post_id)
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user,post=post)
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+class CommentLikeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,comment_id):
+        comment = get_object_or_404(Comment,id=comment_id)
+
+        if CommentLike.objects.filter(user=request.user,comment=comment).exists():
+            return Response({'error':'You have already liked this comment'},status=status.HTTP_400_BAD_REQUEST)
+        
+        CommentLike.objects.create(user=request.user,comment=comment)
+        return Response({'message':'Comment liked successfully'},status=status.HTTP_201_CREATED)
+    
+class CommentUnlikeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self,request,comment_id):
+        comment = get_object_or_404(Comment,id=comment_id)
+
+        try:
+            like = CommentLike.objects.get(user=request.user,comment=comment)
+            like.delete()
+            return Response({'message':'Comment unliked successfully'},status=status.HTTP_200_OK)
+        except CommentLike.DoesNotExist:
+            return Response({'error':'You have not liked this comment yet'},status=status.HTTP_400_BAD_REQUEST)
+
+
+
 

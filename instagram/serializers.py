@@ -167,3 +167,15 @@ class StoryLikeSerializer(serializers.ModelSerializer):
         model = StoryLike
         fields = ['user','story','created_at']
         read_only_fields = ['user','created_at']
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['id','user','post','text','created_at']
+        read_only_fields = ['id','user','post','created_at']
+
+class CommentLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommentLike
+        fields = ['user','comment','created_at']
+        read_only_fields = ['user','created_at']

@@ -21,6 +21,10 @@ urlpatterns = [
     path('story-like/<int:story_id>/', StoryLikeView.as_view(), name='story-like'),
     path('story-unlike/<int:story_id>/',StoryUnLikeView.as_view(),name='story-unlike'),
     path('delete-story/<int:story_id>/',DeleteStory.as_view(),name='delete-story'),
+    path('post/<int:post_id>/comment/',CommentView.as_view(),name='post-comment'),
+    path('comment-like/<int:comment_id>/',CommentLikeView.as_view(),name='comment-like'),
+    path('comment-unlike/<int:comment_id>/',CommentUnlikeView.as_view(),name='comment-unlike'),
+    
 
 ]
  
