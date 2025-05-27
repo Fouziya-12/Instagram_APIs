@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 
 
 
+
 class RegisterView(APIView):
     def post(self,request):
         serializer = RegisterSerializer(data=request.data)
@@ -106,7 +107,7 @@ class DeleteUserPostView(APIView):
 class LikeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self,request,post_id):
+    def post(self,request,post_id):
         try:
             post = Post.objects.get(id=post_id)
         except Post.DoesNotExist:
@@ -364,5 +365,13 @@ class CommentUnlikeView(APIView):
             return Response({'error':'You have not liked this comment yet'},status=status.HTTP_400_BAD_REQUEST)
 
 
+class CommentDetailView(APIView):
+    def get(self, request, post_id, comment_id):
+        try:
+            post = Post.objects.get(id=post_id)
+            comment = Comment.objects.get(id=comment_id, post=post)
+        except (Post.DoesNotExist, Comment.DoesNotExist):
+            return Response({"error": "Comment not found"}, status=404)
 
-
+        serializer = CommentDetailSerializer(comment)
+        return Response(serializer.data, status=200)

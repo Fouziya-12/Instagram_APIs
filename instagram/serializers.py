@@ -30,7 +30,8 @@ class LoginSerializer(serializers.Serializer):
 
         data['user'] = user
         return data
-    
+
+
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
@@ -75,8 +76,6 @@ class GetAllPostSerializer(serializers.Serializer):
             'is_staff': user.is_staff,
             'is_superuser': user.is_superuser,
         }
-
-
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -159,8 +158,7 @@ class CreateStorySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         file = validated_data.pop('uploaded_file')
         return Story.objects.create(story_url=file, **validated_data)
-      
-    
+        
 
 class StoryLikeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -168,14 +166,44 @@ class StoryLikeSerializer(serializers.ModelSerializer):
         fields = ['user','story','created_at']
         read_only_fields = ['user','created_at']
 
-class CommentSerializer(serializers.ModelSerializer):
+
+#---------------------------------------------------------
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id','username','email','profile_pic']    
+
+class OwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id','username','email','profile_pic']
+
+class PostWithOwnerPicSerializer(serializers.ModelSerializer):
+    owner = OwnerSerializer(read_only=True)
+    class Meta:
+        model = Post
+        fields = ['id','content','post_url','created_at','owner']
+
+class CommentDetailSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    post = PostWithOwnerPicSerializer(read_only=True)
     class Meta:
         model = Comment
-        fields = ['id','user','post','text','created_at']
+        fields = ['id','user','post','content','created_at']
+#----------------------------------------------------------------------
+
+
+class CommentSerializer(serializers.ModelSerializer):  
+    class Meta:
+        model = Comment
+        fields = ['id','user','post','content','created_at']
         read_only_fields = ['id','user','post','created_at']
+
 
 class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentLike
         fields = ['user','comment','created_at']
         read_only_fields = ['user','created_at']
+
+

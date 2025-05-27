@@ -91,7 +91,7 @@ class StoryView(models.Model):
 class Comment(models.Model):
     user = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
     post = models.ForeignKey(Post,on_delete=models.CASCADE)
-    text = models.TextField()
+    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

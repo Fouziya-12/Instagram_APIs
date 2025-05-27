@@ -24,6 +24,9 @@ urlpatterns = [
     path('post/<int:post_id>/comment/',CommentView.as_view(),name='post-comment'),
     path('comment-like/<int:comment_id>/',CommentLikeView.as_view(),name='comment-like'),
     path('comment-unlike/<int:comment_id>/',CommentUnlikeView.as_view(),name='comment-unlike'),
+    path('posts/<int:post_id>/comments/<int:comment_id>/', CommentDetailView.as_view(), name='comment-details'),
+
+
     
 
 ]
