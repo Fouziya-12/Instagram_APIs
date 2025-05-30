@@ -196,8 +196,8 @@ class CommentDetailSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):  
     class Meta:
         model = Comment
-        fields = ['id','user','post','content','created_at']
-        read_only_fields = ['id','user','post','created_at']
+        fields = ['id','user','post','content','parent','created_at']
+        read_only_fields = ['user','created_at','post','parent']
 
 
 class CommentLikeSerializer(serializers.ModelSerializer):

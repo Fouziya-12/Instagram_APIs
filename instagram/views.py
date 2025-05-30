@@ -375,3 +375,18 @@ class CommentDetailView(APIView):
 
         serializer = CommentDetailSerializer(comment)
         return Response(serializer.data, status=200)
+    
+class ReplyToCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request,comment_id):
+        # parent_comment = get_object_or_404(Comment,id=comment_id)
+        try:
+            parent_comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({'error':'Parent comment not found'},status=status.HTTP_404_NOT_FOUND)
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user,post=parent_comment.post,parent=parent_comment)
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
