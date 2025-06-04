@@ -26,7 +26,8 @@ urlpatterns = [
     path('comment-unlike/<int:comment_id>/',CommentUnlikeView.as_view(),name='comment-unlike'),
     path('posts/<int:post_id>/comments/<int:comment_id>/', CommentDetailView.as_view(), name='comment-details'),
     path('comments/<int:comment_id>/reply/',ReplyToCommentView.as_view(),name='comment-reply'),
-
+    path('post/<int:post_id>/',PostDetailsView.as_view(),name='post'),
+    path('comments/<int:comment_id>/delete/',DeleteCommentView.as_view(),name='delete-comment'),
 
     
 

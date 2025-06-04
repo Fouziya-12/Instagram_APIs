@@ -3,6 +3,7 @@ from .models import *
 from django.contrib.auth import authenticate
 
 
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True,min_length=6)
     #The write_only=True makes sure the password is not shown in API responses.
@@ -206,4 +207,36 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         fields = ['user','comment','created_at']
         read_only_fields = ['user','created_at']
 
+# ----------------- Post Details with comments and replies ---------------------
 
+class ReplySerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Comment
+        fields = ['id','user','content','created_at']
+
+class CommentWithRepliesSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    replies = serializers.SerializerMethodField()
+    class Meta:
+        model = Comment
+        fields = ['id','user','content','created_at','replies']
+    
+    def get_replies(self,obj):
+        child_comments = obj.replies.all()
+        return CommentWithRepliesSerializer(child_comments,many=True).data
+    
+class PostDetailsWithCommentSerializer(serializers.ModelSerializer):
+    owner = OwnerSerializer(read_only=True)
+    comments = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    class Meta:
+        model = Post
+        fields = ['id','content','post_url','created_at','owner','comment_count','comments']
+
+    def get_comments(self,obj):
+        parent_comments = obj.comments.filter(parent__isnull=True)
+        return CommentWithRepliesSerializer(parent_comments,many=True).data
+    
+    def get_comment_count(self,obj):
+        return obj.comments.count()
